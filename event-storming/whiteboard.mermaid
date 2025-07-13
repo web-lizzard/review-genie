@@ -1,0 +1,233 @@
+flowchart LR
+subgraph Legend
+  DE0[Domain Event]
+  CMD0[Command]
+  RM0[(Read Model)]
+  POL0>Policy]
+  AGG0{Aggregate}
+  HS0[!]
+  ACT0((Actor))
+  EX0{{External System}}
+
+  style DE0 fill:#FF9900,color:black
+  style CMD0 fill:#1E90FF,color:white
+  style RM0 fill:#32CD32,color:black
+  style POL0 fill:#9932CC,color:white
+  style AGG0 fill:#FFFF00,color:black
+  style HS0 fill:#FF0000,color:white
+  style ACT0 fill:#FFFF00,color:black
+  style EX0 fill:#A9A9A9,color:white
+end
+
+subgraph AI_Code_Review_Process
+  ACT1((Developer))
+  EX1{{Remote Repository}}
+  ACT2((System))
+  CMD1[Add Project To Tracking]
+  CMD2[Start Analysis]
+  CMD3[Conduct Analysis]
+  CMD4[Confirm Comment]
+  CMD5[Modify Comment]
+  CMD6[Delete Comment]
+  CMD7[Finish Comment Review]
+  CMD8[Add Context]
+  CMD9[Approve Analysis]
+  CMD10[Delete Analysis]
+  CMD11[Retry Analysis]
+  CMD12[Delete Project]
+  CMD13[Send Manually]
+  DE1[Project Tracked]
+  DE2[Analysis Created]
+  DE3[Comments Generated]
+  DE4[Comment Confirmed]
+  DE5[Comment Modified]
+  DE6[Comment Deleted]
+  DE7[All Comments Reviewed]
+  DE8[Additional Context Added]
+  DE9[Analysis Approved]
+  DE10[Analysis Deleted]
+  DE11[Analysis Retried]
+  DE12[Project Deleted]
+  DE13[Send Attempt Failed]
+  DE14[Retry Limit Exceeded]
+  
+  RM1[(Project)]
+  RM2[(Policy Rules)]
+  RM3[(Code Review Standards)]
+  RM4[(Pull Request)]
+  RM5[(Analysis)]
+  RM6[(Comment)]
+  RM7[(Comment Status)]
+  RM8[(Context)]
+
+  AGG1{Project}
+  AGG2{Analysis}
+
+  POL1>Auto Start Analysis]
+  POL2>Auto Retry Analysis]
+  POL3>Auto AI Analysis]
+  POL4>Auto Notification]
+  POL5>Auto Retry Send]
+
+  HS1[Send Error]
+  HS2[Retry Limit]
+  HS3[Policy Validation]
+  HS4[Comment Status]
+  HS5[Analysis Approved]
+
+  ACT1 -.-> CMD1
+  RM1 -.-> CMD1
+  RM2 -.-> CMD1
+  RM3 -.-> CMD1
+  CMD1 -.-> AGG1
+  AGG1 -.-> DE1
+  DE1 ==> POL1
+  POL1 ==> CMD2
+  EX1 -.-> CMD2
+  RM1 -.-> CMD2
+  RM2 -.-> CMD2
+  RM4 -.-> CMD2
+  HS3 -.-> CMD2
+  CMD2 -.-> AGG2
+  AGG2 -.-> DE2
+  DE2 ==> POL3
+  POL3 ==> CMD3
+  ACT2 -.-> CMD3
+  RM1 -.-> CMD3
+  RM3 -.-> CMD3
+  RM4 -.-> CMD3
+  RM8 -.-> CMD3
+  RM7 -.-> CMD3
+  CMD3 -.-> AGG2
+  AGG2 -.-> DE3
+  DE3 -.-> ACT1
+  ACT1 -.-> CMD4
+  RM6 -.-> CMD4
+  RM8 -.-> CMD4
+  CMD4 -.-> AGG2
+  AGG2 -.-> DE4
+  DE3 -.-> ACT1
+  ACT1 -.-> CMD5
+  RM6 -.-> CMD5
+  RM8 -.-> CMD5
+  CMD5 -.-> AGG2
+  AGG2 -.-> DE5
+  DE3 -.-> ACT1
+  ACT1 -.-> CMD6
+  RM6 -.-> CMD6
+  RM8 -.-> CMD6
+  CMD6 -.-> AGG2
+  AGG2 -.-> DE6
+  DE3 -.-> ACT1
+  ACT1 -.-> CMD7
+  RM7 -.-> CMD7
+  HS4 -.-> CMD7
+  CMD7 -.-> AGG2
+  AGG2 -.-> DE7
+  DE3 -.-> ACT1
+  ACT1 -.-> CMD8
+  RM5 -.-> CMD8
+  HS5 -.-> CMD8
+  CMD8 -.-> AGG2
+  AGG2 -.-> DE8
+  DE8 ==> POL2
+  POL2 ==> CMD11
+  DE7 -.-> ACT1
+  ACT1 -.-> CMD9
+  RM5 -.-> CMD9
+  HS4 -.-> CMD9
+  CMD9 -.-> AGG2
+  AGG2 -.-> DE9
+  DE9 ==> POL4
+  POL4 ==> EX1
+  EX1 -.-> DE13
+  DE13 ==> POL5
+  POL5 ==> POL4
+  HS1 -.-> DE13
+  HS2 -.-> DE14
+  DE14 -.-> CMD13
+  ACT1 -.-> CMD13
+  RM5 -.-> CMD13
+  CMD13 -.-> EX1
+  DE3 -.-> ACT1
+  ACT1 -.-> CMD10
+  RM5 -.-> CMD10
+  CMD10 -.-> AGG2
+  AGG2 -.-> DE10
+  RM5 -.-> CMD11
+  HS2 -.-> CMD11
+  CMD11 -.-> AGG2
+  AGG2 -.-> DE11
+  ACT1 -.-> CMD12
+  RM1 -.-> CMD12
+  CMD12 -.-> AGG1
+  AGG1 -.-> DE12
+  DE1 --> DE2
+  DE2 --> DE3
+  DE3 --> DE4
+  DE3 --> DE5
+  DE3 --> DE6
+  DE4 --> DE7
+  DE5 --> DE7
+  DE6 --> DE7
+  DE7 --> DE9
+  DE7 --> DE10
+  DE7 --> DE8
+  DE8 --> DE11
+  DE11 --> DE2
+  DE9 --> DE13
+  DE13 --> DE14
+  DE1 --> DE12
+
+  style ACT1 fill:#FFFF00,color:black
+  style EX1 fill:#A9A9A9,color:white
+  style ACT2 fill:#FFFF00,color:black
+  style CMD1 fill:#1E90FF,color:white
+  style CMD2 fill:#1E90FF,color:white
+  style CMD3 fill:#1E90FF,color:white
+  style CMD4 fill:#1E90FF,color:white
+  style CMD5 fill:#1E90FF,color:white
+  style CMD6 fill:#1E90FF,color:white
+  style CMD7 fill:#1E90FF,color:white
+  style CMD8 fill:#1E90FF,color:white
+  style CMD9 fill:#1E90FF,color:white
+  style CMD10 fill:#1E90FF,color:white
+  style CMD11 fill:#1E90FF,color:white
+  style CMD12 fill:#1E90FF,color:white
+  style CMD13 fill:#1E90FF,color:white
+  style DE1 fill:#FF9900,color:black
+  style DE2 fill:#FF9900,color:black
+  style DE3 fill:#FF9900,color:black
+  style DE4 fill:#FF9900,color:black
+  style DE5 fill:#FF9900,color:black
+  style DE6 fill:#FF9900,color:black
+  style DE7 fill:#FF9900,color:black
+  style DE8 fill:#FF9900,color:black
+  style DE9 fill:#FF9900,color:black
+  style DE10 fill:#FF9900,color:black
+  style DE11 fill:#FF9900,color:black
+  style DE12 fill:#FF9900,color:black
+  style DE13 fill:#FF9900,color:black
+  style DE14 fill:#FF9900,color:black
+  style RM1 fill:#32CD32,color:black
+  style RM2 fill:#32CD32,color:black
+  style RM3 fill:#32CD32,color:black
+  style RM4 fill:#32CD32,color:black
+  style RM5 fill:#32CD32,color:black
+  style RM6 fill:#32CD32,color:black
+  style RM7 fill:#32CD32,color:black
+  style RM8 fill:#32CD32,color:black
+  style AGG1 fill:#FFFF00,color:black
+  style AGG2 fill:#FFFF00,color:black
+  style POL1 fill:#9932CC,color:white
+  style POL2 fill:#9932CC,color:white
+  style POL3 fill:#9932CC,color:white
+  style POL4 fill:#9932CC,color:white
+  style POL5 fill:#9932CC,color:white
+  style HS1 fill:#FF0000,color:white
+  style HS2 fill:#FF0000,color:white
+  style HS3 fill:#FF0000,color:white
+  style HS4 fill:#FF0000,color:white
+  style HS5 fill:#FF0000,color:white
+end
+
