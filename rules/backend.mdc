@@ -1,11 +1,11 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 # Python rules

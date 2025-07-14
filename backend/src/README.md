@@ -45,4 +45,4 @@ Dependencies flow inward: Adapters → Application → Domain
 
 - Domain layer has no external dependencies
 - Application layer depends only on Domain
-- Adapters depend on Application and Domain layers 
+- Adapters depend on Application and Domain layers
