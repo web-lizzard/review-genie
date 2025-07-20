@@ -13,16 +13,16 @@ repos:
     hooks:
       - id: ruff-check
         name: ruff-check
-        entry: bash -c 'cd backend/src && source .venv/bin/activate && ruff check --fix'
+        entry: bash -c 'cd backend && uv run ruff check --fix'
         language: system
-        files: ^backend/src/
+        files: ^backend/
         types: [python]
         pass_filenames: false
       - id: ruff-format
         name: ruff-format
-        entry: bash -c 'cd backend/src && source .venv/bin/activate && ruff format'
+        entry: bash -c 'cd backend && uv run ruff format'
         language: system
-        files: ^backend/src/
+        files: ^backend/
         types: [python]
         pass_filenames: false
 
@@ -30,8 +30,8 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        files: ^backend/src/
-        args: [--config-file=backend/src/mypy.ini]
+        files: ^backend/
+        args: [--config-file=backend/mypy.ini]
         additional_dependencies: [
           aiohttp>=3.12.14,
           alembic>=1.16.4,
