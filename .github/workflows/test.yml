@@ -1,0 +1,48 @@
+name: Backend Quality
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build development Docker image
+      run: |
+        cd backend
+        docker build \
+          --target development \
+          --tag review-genie-backend-test \
+          .
+
+    - name: Run pytest tests
+      run: |
+        docker run \
+          --rm \
+          --volume "${{ github.workspace }}/backend:/app" \
+          review-genie-backend-test \
+          bash -c "uv run pytest tests/ -v || ([ \$? -eq 5 ] && echo 'No tests collected, skipping...' && exit 0) || exit \$?"
+
+    - name: Run linting with ruff
+      run: |
+        docker run \
+          --rm \
+          --volume "${{ github.workspace }}/backend:/app" \
+          review-genie-backend-test \
+          uv run ruff check .
+
+    - name: Run type checking with mypy
+      run: |
+        docker run \
+          --rm \
+          --volume "${{ github.workspace }}/backend:/app" \
+          review-genie-backend-test \
+          uv run mypy .
