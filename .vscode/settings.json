@@ -1,0 +1,22 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/.uv_cache": true,
+        "**/.ruff_cache": true,
+        "**/.venv": true,
+    },
+
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    },
+
+    "python.defaultInterpreterPath": "/workspaces/review-genie/backend/.venv/bin/python",
+
+    "cursorpyright.analysis.typeCheckingMode": "strict",
+    "cursorpyright.analysis.extraPaths": [
+        "/workspaces/review-genie/backend"
+    ],
+
+}
