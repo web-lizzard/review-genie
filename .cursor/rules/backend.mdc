@@ -1,0 +1,85 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+---
+description:
+globs:
+alwaysApply: true
+---
+# Python rules
+
+Use Python 3.13 and aim to use modern language constructs and software developement best practices. In particular, follow these rules every time you write Python code.
+
+## README.md
+
+Consult any `README.md` files located with the code. Update these documents to reflect noteworthy modifications as you change the code.
+
+## Simplicity
+
+Strive to write short and streamlined code that is easy to follow and maintain.
+
+When a function grows beyond 20-30 lines, consider splitting it into smaller, well-named functions.
+
+## Comments
+
+Avoid redundant comments that merely restate what the code does. Instead, write self-documenting code by choosing clear variable and function names. If a complex section needs an explanation, first consider refactoring it into smaller, well-named functions.
+
+## Code style
+
+We use Ruff with a line length set to 100.
+
+## Internal prefix `_`
+
+Always prefix internal functions, methods, and attributes within a module or class with a single underscore (`_`).
+
+## Ordering
+
+Place public functions, classes, and members first in a file. Position internal ones below the public components, in a rough order of their usage.
+
+## Typing
+
+Never import collection types from `typing` (e.g., `List`, `Dict`, `Tuple`, `Set`). Use their lowercase built-in counterparts directly (e.g., `list`, `dict`, `tuple`, `set`), as these have been preferred for annotations since Python 3.9. Prefer `| None` over `Optional`.
+
+Always define the expected type when initializing empty lists, sets, dicts, etc., e.g., `lines: list[str] = []`.
+
+## Prefered packages
+
+For consistency, prefer `BaseModel` from Pydantic 2 over `dataclass` and `TypedDict`.
+
+Use `rich` when colorful or structured console output is needed. Import it as `from rich import print as rprint`.
+
+## Async code
+
+Use `async` code where appropriate.
+
+### Task groups
+
+Prefer `asyncio.TaskGroup` usage over `asyncio.gather`. Ensure correct implementation, for example:
+
+```python
+async def main():
+    async with asyncio.TaskGroup() as tg:
+        task1 = tg.create_task(some_coro(...))
+        task2 = tg.create_task(another_coro(...))
+    print(f"Both tasks have completed: {task1.result()}, {task2.result()}")
+```
+
+## Shared code and utils
+
+Place common utilities and services in the `shared` directory.
+
+In particular, use `load_json(file_path)` (or `load_file`, `load_csv`, `load_yaml`) and `save_json(data, file_path)` where needed.
+
+## Tests
+
+After implementing complex or shared functionality, create pytest tests in the `tests` directory and run them with the `uv run pytest` command. Iterate if the tests fail.
+
+Split test cases into test suite classes to make them easier to scan and maintain.
+
+Use `@pytest.mark.parametrize` where appropriate to simplify repetitive test code.
+
+## Linter
+
+Address Ruff warnings only after your main task's functionality is verified with passing tests. Prioritize code simplicity and readability. Avoid complicating working code or using constructs like `typing.cast` solely to silence linter warnings
