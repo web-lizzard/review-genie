@@ -1,0 +1,30 @@
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+
+    volumes:
+      - ..:/workspaces/review-genie
+      - vscode-home:/home/vscode
+
+    # Override default command to prevent the container from shutting down
+    command: sleep infinity
+
+  db:
+    image: postgres:14-alpine
+
+    environment:
+      POSTGRES_USER: review-genie
+      POSTGRES_PASSWORD: review-genie
+      POSTGRES_DB: review-genie
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    # Put the database on the same network as the devcontainer
+    network_mode: service:devcontainer
+
+    restart: unless-stopped
+
+volumes:
+  vscode-home:
+  postgres-data:
