@@ -1,86 +1,81 @@
-# Stage 1: Install uv
-FROM python:3.13.2-slim as uv-installer
+ARG base_image="debian:bookworm-slim"
+FROM ghcr.io/astral-sh/uv:0.7.11 AS uv
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+# ------------------------
+FROM ${base_image} AS development
 
-# Stage 2: Bootstrap project for development
-FROM python:3.13.2-slim as development
-
-# Copy uv from previous stage
-COPY --from=uv-installer /usr/local/bin/uv /usr/local/bin/uv
-COPY --from=uv-installer /usr/local/bin/uvx /usr/local/bin/uvx
-
-# Set working directory
 WORKDIR /app
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/root/.local/bin:/app/.venv/bin:$PATH" \
+    UV_LINK_MODE="copy"
 
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates make git curl ssh-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy source code (needed before uv sync for editable install)
-COPY domain/ ./domain/
-COPY application/ ./application/
-COPY adapters/ ./adapters/
-COPY bootstrap/ ./bootstrap/
-COPY run_web_server.py ./
+COPY --from=uv /uv /uvx /bin/
 
-# Install all dependencies including dev dependencies
-RUN uv sync
+# Setup UV with autocompletion
+RUN uv generate-shell-completion bash > ~/.uv_bash_completion \
+    && echo "source $HOME/.uv_bash_completion" >> ~/.bashrc
 
-# Run the application
-CMD ["uv", "run", "run_web_server.py"]
+# Note: Python is installed by UV, based on .python-version declaration
+COPY .python-version pyproject.toml uv.lock /app/
+COPY bootstrap/ /app/bootstrap/
+COPY adapters/ /app/adapters/
+COPY domain/ /app/domain/
+COPY tests/ /app/tests/
+COPY application/ /app/application/
+RUN uv sync \
+    --directory /app \
+    --frozen \
+    --no-install-project
 
-# Stage 3: Export requirements for production
-FROM python:3.13.2-slim as requirements-export
+CMD [ "/bin/sh", "-c", "uvicorn bootstrap.web_app:bootstrap_web_api --host 0.0.0.0 --port $PORT --reload --factory" ]
 
-# Copy uv from first stage
-COPY --from=uv-installer /usr/local/bin/uv /usr/local/bin/uv
+VOLUME [ "/app/.venv" ]
 
-# Set working directory
+# ------------------------
+FROM ${base_image} AS production-builder-base
+
+COPY --from=uv /uv /uvx /bin/
+
+# Note: Python is installed by UV, based on .python-version declaration
+COPY .python-version pyproject.toml uv.lock /app/
+COPY bootstrap/ /app/bootstrap/
+COPY adapters/ /app/adapters/
+COPY domain/ /app/domain/
+COPY tests/ /app/tests/
+COPY application/ /app/application/
+RUN uv sync \
+    --directory /app \
+    --frozen \
+    --compile-bytecode \
+    --no-install-project \
+    --no-editable \
+    --no-dev
+
+# ------------------------
+FROM ${base_image} AS production
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/app/.venv/bin:$PATH"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python UV installation and created virtual environment
+COPY --from=production-builder-base /root/.local /root/.local
+COPY --from=production-builder-base /app/.venv /app/.venv
+
 WORKDIR /app
+COPY . ./
 
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
-
-# Copy source code (needed for uv to understand project structure)
-COPY domain/ ./domain/
-COPY application/ ./application/
-COPY adapters/ ./adapters/
-COPY bootstrap/ ./bootstrap/
-COPY run_web_server.py ./
-
-# Export production requirements without editable installs and hashes
-RUN uv export --format requirements-txt --no-dev --no-hashes --no-editable > requirements_temp.txt && \
-    grep -v "^\\.$" requirements_temp.txt > requirements.txt && \
-    rm requirements_temp.txt
-
-# Stage 4: Production image
-FROM python:3.13.2-slim as production
-
-# Set working directory
-WORKDIR /app
-
-# Copy requirements.txt from export stage
-COPY --from=requirements-export /app/requirements.txt ./
-
-# Install production dependencies
-RUN pip install --no-cache-dir -r requirements.txt && \
-    rm requirements.txt
-
-# Copy source code
-COPY domain/ ./domain/
-COPY application/ ./application/
-COPY adapters/ ./adapters/
-COPY bootstrap/ ./bootstrap/
-COPY run_web_server.py ./
-
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN chown -R appuser:appuser /app
-USER appuser
-
-# Expose port
-EXPOSE 8000
-
-# Run the application
-CMD ["python", "run_web_server.py"]
+# Run app in single process, to allow better scaling at infrastructure level:
+# https://fastapi.tiangolo.com/deployment/docker/
+CMD [ "sh", "-c", "uvicorn bootstrap.web_app:bootstrap_web_api --host 0.0.0.0 --port $PORT --factory" ]

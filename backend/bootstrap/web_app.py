@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from adapters.inbound.api.routers import health_router
 
 
-def create_web_api() -> FastAPI:
+def _create_web_api() -> FastAPI:
     """Create and configure the FastAPI web application."""
     app = FastAPI(
         title="Review Genie API",
@@ -27,7 +27,7 @@ def bootstrap_web_api() -> FastAPI:
         FastAPI: Configured FastAPI application instance.
     """
     # Create the web API adapter
-    app = create_web_api()
+    app = _create_web_api()
 
     # Add any additional configuration here
     # For example: middleware, exception handlers, startup/shutdown events
