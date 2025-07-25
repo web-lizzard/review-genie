@@ -1,33 +1,23 @@
 {
     "name": "review-genie-devcontainer",
 
-    "dockerComposeFile": "./compose.yaml",
-    "service": "devcontainer",
-    "workspaceFolder": "/workspaces/review-genie",
+    "dockerComposeFile": "../compose.yaml",
+    "service": "api",
+    "workspaceFolder": "/app",
 
-    "features": {
-      "ghcr.io/devcontainers/features/python:1": {
-        "version": "3.13.2"
-      },
-      "ghcr.io/devcontainers/features/git:1": {
-        "version": "latest"
-      },
-      "ghcr.io/va-h/devcontainers-features/uv:1": {},
-       "ghcr.io/guiyomh/features/just:0": {
-        "version": "latest"
-      }
-    },
+    "features": {    },
 
-    "postCreateCommand": "bash -i .devcontainer/post-create.sh",
 
-    "containerUser": "vscode",
+    "containerUser": "root",
 
     "customizations": {
       "vscode": {
         "extensions": [
+
           "ms-python.python",
           "charliermarsh.ruff",
-          "davidanson.vscode-markdownlint"
+          "davidanson.vscode-markdownlint",
+          "humao.rest-client"
         ]
       }
     }

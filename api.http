@@ -1,0 +1,4 @@
+@url = http://localhost:8000
+
+### Health check
+GET {{url}}/api/v1/health
