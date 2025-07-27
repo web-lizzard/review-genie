@@ -12,3 +12,14 @@ class DomainEvent(BaseModel):
 
     class Config:
         frozen = True
+
+    def serialize(self) -> dict:
+        return self.model_dump()
+
+    @property
+    def type(self) -> str:
+        return self.__class__.__name__
+
+    @classmethod
+    def deserialize(cls, data: dict) -> "DomainEvent":
+        return cls(**data)
