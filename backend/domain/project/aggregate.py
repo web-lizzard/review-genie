@@ -1,9 +1,10 @@
 from datetime import datetime
 
+from domain.entity import Entity
 from domain.project import value_objects as vo
 
 
-class Project:
+class Project(Entity):
     _id: vo.ProjectId
     _repo_id: vo.RepositoryId
     _provider: vo.Provider
@@ -35,3 +36,7 @@ class Project:
         self._owner = owner
         self._created_at = created_at
         self._updated_at = updated_at
+
+    def id(self) -> str:
+        """Return the id of the project."""
+        return str(self._id)

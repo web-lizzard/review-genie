@@ -2,6 +2,13 @@ line-length = 88
 target-version = "py313"
 src = ["."]
 
+exclude = [
+    "tests/",
+    "test/",
+    "*_test.py",
+    "test_*.py",
+]
+
 [lint]
 select = [
     "E",  # pycodestyle errors
