@@ -2,6 +2,7 @@ from collections.abc import Callable
 
 from application.commands.commands import CreateProjectCommand
 from domain.ports import UnitOfWork
+from domain.project.exceptions import ProjectAlreadyExistsError
 from domain.project.services import CreateProjectService
 from domain.specifications import ProjectAlreadyExistsSpecification
 
@@ -24,8 +25,7 @@ class CreateProjectCommandHandler:
             spec = self._specification_factory(command)
             is_project_already_exists = await uow.make_query(spec)
             if is_project_already_exists:
-                # raise ProjectAlreadyExistsError
-                raise Exception("Project already exists")
+                raise ProjectAlreadyExistsError(command.repo_id)
 
             project = await self._create_project_service.create(
                 command.repo_id,
