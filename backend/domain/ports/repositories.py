@@ -2,18 +2,8 @@ from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import Self
 
-from pydantic import BaseModel
-
 from domain.entity import Entity
-
-
-class Specification[TQuery](BaseModel):
-    pass
-
-    @abstractmethod
-    def to_query(self) -> TQuery:
-        """Convert the specification to a query."""
-        raise NotImplementedError
+from domain.ports.specifications import Specification
 
 
 class ReadRepository[TQueryResult](ABC):

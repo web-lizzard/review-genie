@@ -1,6 +1,6 @@
 from abc import ABC
 
-from domain.ports import Specification
+from .specification import Specification
 
 
 class ProjectAlreadyExistsSpecification[TQueryResult](Specification[TQueryResult], ABC):
