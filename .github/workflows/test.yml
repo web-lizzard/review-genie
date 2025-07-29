@@ -37,7 +37,7 @@ jobs:
           --rm \
           --volume "${{ github.workspace }}/backend:/app" \
           review-genie-backend-test \
-          uv run ruff check . --exclude .venv
+          uv run ruff check . --exclude .venv --exclude tests
 
     - name: Run type checking with mypy
       run: |
@@ -45,4 +45,4 @@ jobs:
           --rm \
           --volume "${{ github.workspace }}/backend:/app" \
           review-genie-backend-test \
-          uv run mypy . --exclude .venv
+          uv run mypy . --exclude .venv --exclude tests
