@@ -28,3 +28,14 @@ class DomainError(Exception):
 
         # Convert CamelCase to snake_case
         return re.sub(r"(?<!^)(?=[A-Z])", "_", class_name).lower()
+
+
+class EntityNotFoundError(DomainError):
+    def __init__(self) -> None:
+        """Initialize entity not found error.
+
+        Args:
+            entity_type: Type of entity
+            entity_id: ID of entity
+        """
+        super().__init__("Entity not found")
