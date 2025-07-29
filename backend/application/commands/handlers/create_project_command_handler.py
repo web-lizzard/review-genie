@@ -2,9 +2,9 @@ from collections.abc import Callable
 
 from application.commands.commands import CreateProjectCommand
 from domain.ports import UnitOfWork
+from domain.ports.specifications import ProjectAlreadyExistsSpecification
 from domain.project.exceptions import ProjectAlreadyExistsError
 from domain.project.services import CreateProjectService
-from domain.specifications import ProjectAlreadyExistsSpecification
 
 
 class CreateProjectCommandHandler:
