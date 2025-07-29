@@ -81,7 +81,7 @@ class TestProjectId:
         ],
     )
     def test_invalid_project_id_creation(self, invalid_project_id: str) -> None:
-        """Test that ProjectId raises InvalidProjectIdentifierFormatError for invalid formats."""  # noqa: E501
+        """Test that ProjectId raises InvalidProjectIdentifierFormatError for invalid formats."""
         with pytest.raises(InvalidProjectIdentifierFormatError):
             ProjectId(invalid_project_id)
 

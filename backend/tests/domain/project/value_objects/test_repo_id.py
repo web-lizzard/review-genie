@@ -91,7 +91,7 @@ class TestRepositoryId:
         ],
     )
     def test_invalid_repository_id_creation(self, invalid_repo_id: str) -> None:
-        """Test that RepositoryId raises InvalidRepositoryIdFormatError for invalid names."""  # noqa: E501
+        """Test that RepositoryId raises InvalidRepositoryIdFormatError for invalid names."""
         with pytest.raises(InvalidRepositoryIdFormatError):
             RepositoryId(invalid_repo_id)
 
