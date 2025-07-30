@@ -4,7 +4,7 @@ import pytest
 
 from domain.project.aggregate import Project
 from domain.project.exceptions import RemoteRepositoryDoesNotExistError
-from domain.project.factories import DefaultPoliciesFactory, ProjectFactory
+from domain.project.factories import DefaultPoliciesFactory, ProjectFactory, URLBasedValueObjectsFactory
 from domain.project.ports import RemoteRepositoryVerifier
 from domain.project.services.create_project_service import CreateProjectService
 from domain.project.value_objects import ProviderType
@@ -19,9 +19,14 @@ class TestCreateProjectService:
         return DefaultPoliciesFactory()
 
     @pytest.fixture
-    def project_factory(self, policies_factory):
+    def value_objects_factory(self):
+        """Create a value objects factory for testing."""
+        return URLBasedValueObjectsFactory()
+
+    @pytest.fixture
+    def project_factory(self, policies_factory, value_objects_factory):
         """Create a project factory for testing."""
-        return ProjectFactory(policies_factory)
+        return ProjectFactory(policies_factory, value_objects_factory)
 
     @pytest.fixture
     def mock_verifier_success(self):
@@ -41,31 +46,30 @@ class TestCreateProjectService:
     def valid_project_data(self):
         """Provide valid data for creating a project that passes value object validation."""
         return {
-            "repo_id": "test-repo",
-            "provider": ProviderType.GITHUB.value,
-            "owner": "test-owner",
-            "rules": ["Code must be reviewed", "Tests must pass"],
             "url": "https://github.com/test-owner/test-repo",
+            "rules": ["Code must be reviewed", "Tests must pass"],
         }
 
     @pytest.fixture
-    def service_with_success_verifier(self, project_factory, mock_verifier_success):
+    def service_with_success_verifier(self, project_factory, value_objects_factory, mock_verifier_success):
         """Create service with a verifier that succeeds."""
         return CreateProjectService(
             project_factory=project_factory,
+            value_objects_factory=value_objects_factory,
             remote_repository_verifiers=[mock_verifier_success],
         )
 
     @pytest.fixture
-    def service_with_failure_verifier(self, project_factory, mock_verifier_failure):
+    def service_with_failure_verifier(self, project_factory, value_objects_factory, mock_verifier_failure):
         """Create service with a verifier that fails."""
         return CreateProjectService(
             project_factory=project_factory,
+            value_objects_factory=value_objects_factory,
             remote_repository_verifiers=[mock_verifier_failure],
         )
 
     @pytest.fixture
-    def service_with_multiple_verifiers(self, project_factory):
+    def service_with_multiple_verifiers(self, project_factory, value_objects_factory):
         """Create service with multiple verifiers for testing different scenarios."""
         success_verifier = AsyncMock(spec=RemoteRepositoryVerifier)
         success_verifier.verify.return_value = True
@@ -76,6 +80,7 @@ class TestCreateProjectService:
         return (
             CreateProjectService(
                 project_factory=project_factory,
+                value_objects_factory=value_objects_factory,
                 remote_repository_verifiers=[success_verifier, failure_verifier],
             ),
             success_verifier,
@@ -92,15 +97,15 @@ class TestCreateProjectService:
 
         # Assert
         assert isinstance(result, Project)
-        assert str(result._repo_id) == valid_project_data["repo_id"]
-        assert str(result._provider) == valid_project_data["provider"]
-        assert str(result._owner) == valid_project_data["owner"]
+        assert str(result._repo_id) == "test-repo"
+        assert str(result._provider) == ProviderType.GITHUB.value
+        assert str(result._owner) == "test-owner"
         assert result._rules.rules == valid_project_data["rules"]
-        assert result._url == valid_project_data["url"]
+        assert str(result._url) == valid_project_data["url"]
 
-        # Verify verifier was called with correct parameters
+        # Verify verifier was called with correct parameters extracted from URL
         mock_verifier_success.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
 
     @pytest.mark.asyncio
@@ -113,12 +118,12 @@ class TestCreateProjectService:
             await service_with_failure_verifier.create(**valid_project_data)
 
         # Verify exception message contains the expected information
-        expected_message = f"Remote repository '{valid_project_data['repo_id']}' does not exist on provider '{valid_project_data['provider']}'"
+        expected_message = f"Remote repository 'test-repo' does not exist on provider 'github'"
         assert str(exc_info.value) == expected_message
 
-        # Verify verifier was called
+        # Verify verifier was called with correct parameters extracted from URL
         mock_verifier_failure.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
 
     @pytest.mark.asyncio
@@ -142,7 +147,7 @@ class TestCreateProjectService:
 
         # Verify only first verifier was called (loop breaks on first success)
         success_verifier.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
         # Second verifier should NOT be called because loop breaks on first success
         failure_verifier.verify.assert_not_called()
@@ -166,10 +171,10 @@ class TestCreateProjectService:
 
         # Verify both verifiers were called
         success_verifier.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
         failure_verifier.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
 
     @pytest.mark.asyncio
@@ -189,10 +194,10 @@ class TestCreateProjectService:
 
         # Verify both verifiers were called
         success_verifier.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
         failure_verifier.verify.assert_called_once_with(
-            valid_project_data["repo_id"], valid_project_data["provider"]
+            "test-repo", ProviderType.GITHUB.value
         )
 
     @pytest.mark.asyncio
@@ -200,25 +205,39 @@ class TestCreateProjectService:
         self, service_with_success_verifier, mock_verifier_success
     ):
         """Test project creation with different valid providers."""
-        base_data = {
-            "repo_id": "test-repo",
-            "owner": "test-owner",
-            "rules": ["Standard rules"],
-            "url": "https://example.com/repo",
-        }
+        test_cases = [
+            {
+                "url": "https://github.com/test-owner/test-repo",
+                "expected_provider": ProviderType.GITHUB.value,
+                "expected_repo": "test-repo",
+                "expected_owner": "test-owner",
+            },
+            {
+                "url": "https://gitlab.com/test-owner/test-repo",
+                "expected_provider": ProviderType.GITLAB.value,
+                "expected_repo": "test-repo",
+                "expected_owner": "test-owner",
+            },
+            {
+                "url": "https://bitbucket.org/test-owner/test-repo",
+                "expected_provider": ProviderType.BITBUCKET.value,
+                "expected_repo": "test-repo",
+                "expected_owner": "test-owner",
+            },
+        ]
 
-        providers = [ProviderType.GITHUB, ProviderType.GITLAB, ProviderType.BITBUCKET]
-
-        for provider in providers:
+        for case in test_cases:
             mock_verifier_success.reset_mock()
 
-            data = {**base_data, "provider": provider.value}
+            data = {"url": case["url"], "rules": ["Standard rules"]}
             result = await service_with_success_verifier.create(**data)
 
             assert isinstance(result, Project)
-            assert str(result._provider) == provider.value
+            assert str(result._provider) == case["expected_provider"]
+            assert str(result._repo_id) == case["expected_repo"]
+            assert str(result._owner) == case["expected_owner"]
             mock_verifier_success.verify.assert_called_once_with(
-                data["repo_id"], data["provider"]
+                case["expected_repo"], case["expected_provider"]
             )
 
     @pytest.mark.asyncio
@@ -259,36 +278,31 @@ class TestCreateProjectService:
         assert result._rules.rules == custom_rules
 
     @pytest.mark.asyncio
-    async def test_create_project_with_edge_case_valid_identifiers(
+    async def test_create_project_with_edge_case_valid_urls(
         self, service_with_success_verifier
     ):
-        """Test project creation with edge cases for valid identifiers."""
+        """Test project creation with edge cases for valid URLs."""
         edge_cases = [
             {
-                "repo_id": "a",  # Single character
-                "owner": "a",  # Single character
-                "provider": ProviderType.GITHUB.value,
-                "rules": [],
                 "url": "https://github.com/a/a",
+                "expected_repo": "a",
+                "expected_owner": "a",
             },
             {
-                "repo_id": "repo-with-hyphens",
-                "owner": "owner-with-hyphens",
-                "provider": ProviderType.GITLAB.value,
-                "rules": ["Rule 1"],
                 "url": "https://gitlab.com/owner-with-hyphens/repo-with-hyphens",
+                "expected_repo": "repo-with-hyphens",
+                "expected_owner": "owner-with-hyphens",
             },
             {
-                "repo_id": "repo.with.dots",
-                "owner": "owner123",
-                "provider": ProviderType.BITBUCKET.value,
-                "rules": ["Rule 1", "Rule 2"],
                 "url": "https://bitbucket.org/owner123/repo.with.dots",
+                "expected_repo": "repo.with.dots",
+                "expected_owner": "owner123",
             },
         ]
 
-        for data in edge_cases:
+        for case in edge_cases:
+            data = {"url": case["url"], "rules": ["Rule 1"]}
             result = await service_with_success_verifier.create(**data)
             assert isinstance(result, Project)
-            assert str(result._repo_id) == data["repo_id"]
-            assert str(result._owner) == data["owner"]
+            assert str(result._repo_id) == case["expected_repo"]
+            assert str(result._owner) == case["expected_owner"]

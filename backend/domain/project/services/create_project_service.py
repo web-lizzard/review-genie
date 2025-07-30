@@ -1,7 +1,8 @@
 from domain.project import value_objects as vo
 from domain.project.aggregate import Project
 from domain.project.exceptions import RemoteRepositoryDoesNotExistError
-from domain.project.factories import ProjectFactory, ValueObjectsFactory
+from domain.project.factories import ProjectFactory
+from domain.project.factories.value_objects_factory import ValueObjectsFactory
 from domain.project.ports import RemoteRepositoryVerifier
 
 

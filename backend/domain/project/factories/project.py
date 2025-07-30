@@ -4,6 +4,8 @@ from domain.project import factories
 from domain.project import value_objects as vo
 from domain.project.aggregate import Project
 
+from .value_objects_factory import ValueObjectsFactory
+
 
 class ProjectFactory:
     """Factory for creating Project aggregates.
@@ -15,7 +17,7 @@ class ProjectFactory:
     def __init__(
         self,
         policies_factory: factories.PoliciesFactory,
-        value_objects_factory: factories.ValueObjectsFactory,
+        value_objects_factory: ValueObjectsFactory,
     ):
         """Initialize the ProjectFactory.
 
