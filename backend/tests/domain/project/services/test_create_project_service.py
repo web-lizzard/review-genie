@@ -7,7 +7,7 @@ from domain.project.exceptions import RemoteRepositoryDoesNotExistError
 from domain.project.factories import DefaultPoliciesFactory, ProjectFactory, URLBasedValueObjectsFactory
 from domain.project.ports import RemoteRepositoryVerifier
 from domain.project.services.create_project_service import CreateProjectService
-from domain.project.value_objects import ProviderType
+from domain.project.value_objects import ProviderType, Provider, RepositoryId
 
 
 class TestCreateProjectService:
@@ -105,7 +105,7 @@ class TestCreateProjectService:
 
         # Verify verifier was called with correct parameters extracted from URL
         mock_verifier_success.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
 
     @pytest.mark.asyncio
@@ -123,7 +123,7 @@ class TestCreateProjectService:
 
         # Verify verifier was called with correct parameters extracted from URL
         mock_verifier_failure.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
 
     @pytest.mark.asyncio
@@ -147,7 +147,7 @@ class TestCreateProjectService:
 
         # Verify only first verifier was called (loop breaks on first success)
         success_verifier.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
         # Second verifier should NOT be called because loop breaks on first success
         failure_verifier.verify.assert_not_called()
@@ -171,10 +171,10 @@ class TestCreateProjectService:
 
         # Verify both verifiers were called
         success_verifier.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
         failure_verifier.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
 
     @pytest.mark.asyncio
@@ -194,10 +194,10 @@ class TestCreateProjectService:
 
         # Verify both verifiers were called
         success_verifier.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
         failure_verifier.verify.assert_called_once_with(
-            "test-repo", ProviderType.GITHUB.value
+            repository_id=RepositoryId("test-repo"), provider=Provider(ProviderType.GITHUB)
         )
 
     @pytest.mark.asyncio
@@ -208,19 +208,19 @@ class TestCreateProjectService:
         test_cases = [
             {
                 "url": "https://github.com/test-owner/test-repo",
-                "expected_provider": ProviderType.GITHUB.value,
+                "expected_provider": ProviderType.GITHUB,
                 "expected_repo": "test-repo",
                 "expected_owner": "test-owner",
             },
             {
                 "url": "https://gitlab.com/test-owner/test-repo",
-                "expected_provider": ProviderType.GITLAB.value,
+                "expected_provider": ProviderType.GITLAB,
                 "expected_repo": "test-repo",
                 "expected_owner": "test-owner",
             },
             {
                 "url": "https://bitbucket.org/test-owner/test-repo",
-                "expected_provider": ProviderType.BITBUCKET.value,
+                "expected_provider": ProviderType.BITBUCKET,
                 "expected_repo": "test-repo",
                 "expected_owner": "test-owner",
             },
@@ -233,11 +233,12 @@ class TestCreateProjectService:
             result = await service_with_success_verifier.create(**data)
 
             assert isinstance(result, Project)
-            assert str(result._provider) == case["expected_provider"]
+            assert str(result._provider) == case["expected_provider"].value
             assert str(result._repo_id) == case["expected_repo"]
             assert str(result._owner) == case["expected_owner"]
             mock_verifier_success.verify.assert_called_once_with(
-                case["expected_repo"], case["expected_provider"]
+                repository_id=RepositoryId(case["expected_repo"]),
+                provider=Provider(case["expected_provider"])
             )
 
     @pytest.mark.asyncio
