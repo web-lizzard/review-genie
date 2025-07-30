@@ -45,9 +45,6 @@ class TestCreateProjectCommandHandler:
     def valid_command(self):
         """Create a valid CreateProjectCommand for testing."""
         return CreateProjectCommand(
-            repo_id="test-repo",
-            provider="github",
-            owner="test-owner",
             rules=["Rule 1", "Rule 2"],
             url="https://github.com/test-owner/test-repo",
         )
@@ -93,11 +90,8 @@ class TestCreateProjectCommandHandler:
 
         # 4. Domain service orchestration
         mock_create_project_service.create.assert_called_once_with(
-            valid_command.repo_id,
-            valid_command.provider,
-            valid_command.owner,
-            valid_command.rules,
             valid_command.url,
+            valid_command.rules,
         )
 
         # 5. Entity persistence
@@ -124,8 +118,8 @@ class TestCreateProjectCommandHandler:
         with pytest.raises(ProjectAlreadyExistsError) as exc_info:
             await handler.handle(valid_command)
 
-        # Verify exception contains expected repo_id
-        assert str(exc_info.value).find(valid_command.repo_id) != -1
+        # Verify exception contains expected url
+        assert str(exc_info.value).find(valid_command.url) != -1
 
         # Assert - Application layer responsibilities
         # 1. Specification factory was called
@@ -300,9 +294,6 @@ class TestCreateProjectCommandHandler:
         )
 
         command = CreateProjectCommand(
-            repo_id="different-repo",
-            provider="gitlab",
-            owner="different-owner",
             rules=[],  # Empty rules
             url="https://gitlab.com/different-owner/different-repo",
         )
@@ -315,11 +306,8 @@ class TestCreateProjectCommandHandler:
 
         # Assert - Verify correct parameters passed to domain service
         mock_create_project_service.create.assert_called_once_with(
-            "different-repo",
-            "gitlab",
-            "different-owner",
-            [],
             "https://gitlab.com/different-owner/different-repo",
+            [],
         )
 
         # Assert - Verify specification factory called with correct command
@@ -337,9 +325,6 @@ class TestCreateProjectCommandHandler:
         """Test that command data is passed correctly without modification."""
         # Arrange
         command = CreateProjectCommand(
-            repo_id="test-repo-123",
-            provider="bitbucket",
-            owner="test-owner-456",
             rules=["Rule A", "Rule B", "Rule C"],
             url="https://bitbucket.org/test-owner-456/test-repo-123",
         )
@@ -352,11 +337,8 @@ class TestCreateProjectCommandHandler:
 
         # Assert - Verify exact parameter passing
         mock_create_project_service.create.assert_called_once_with(
-            command.repo_id,
-            command.provider,
-            command.owner,
-            command.rules,
             command.url,
+            command.rules,
         )
 
         # Verify specification factory gets the original command

@@ -11,7 +11,7 @@ class Project(Entity):
     _policies: vo.Policies
     _owner: vo.Owner
     _rules: vo.Rules
-    _url: str
+    _url: vo.URL
     _created_at: datetime
     _updated_at: datetime
 
@@ -22,7 +22,7 @@ class Project(Entity):
         provider: vo.Provider,
         policies: vo.Policies,
         rules: vo.Rules,
-        url: str,
+        url: vo.URL,
         owner: vo.Owner,
         created_at: datetime,
         updated_at: datetime,

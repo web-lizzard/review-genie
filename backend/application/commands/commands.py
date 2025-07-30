@@ -6,8 +6,5 @@ class Command(BaseModel):
 
 
 class CreateProjectCommand(Command):
-    repo_id: str
-    provider: str
-    owner: str
     rules: list[str]
     url: str

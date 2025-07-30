@@ -25,14 +25,11 @@ class CreateProjectCommandHandler:
             spec = self._specification_factory(command)
             is_project_already_exists = await uow.make_query(spec)
             if is_project_already_exists:
-                raise ProjectAlreadyExistsError(command.repo_id)
+                raise ProjectAlreadyExistsError(command.url)
 
             project = await self._create_project_service.create(
-                command.repo_id,
-                command.provider,
-                command.owner,
-                command.rules,
                 command.url,
+                command.rules,
             )
             await uow.save(project)
             await uow.commit()
